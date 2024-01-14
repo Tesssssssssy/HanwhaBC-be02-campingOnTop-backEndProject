@@ -44,7 +44,6 @@ public class House {
     @Min(1)
     private Integer maxUser;
 
-    @ColumnDefault("0")
     @Comment("0: 미보유 | 1: 보유")
     private Boolean hasWashingMachine;
 
@@ -60,7 +59,6 @@ public class House {
     @Comment("0: 비활성화 | 1: 활성화")
     private Boolean status;
 
-    @Version
     private Integer likeCnt;
 
     @Column(updatable = false, nullable = false)
