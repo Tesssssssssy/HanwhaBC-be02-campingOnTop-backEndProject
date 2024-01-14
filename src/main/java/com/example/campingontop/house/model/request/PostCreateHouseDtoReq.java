@@ -10,8 +10,8 @@ public class PostCreateHouseDtoReq {
     private Integer price;
 
     private String address;
-    private String latitude;
-    private String longitude;
+    private Double latitude;
+    private Double longitude;
 
     private Integer maxUser;
 

@@ -1,5 +1,6 @@
 package com.example.campingontop.likes.service;
 
+import com.example.campingontop.houseImage.model.HouseImage;
 import com.example.campingontop.likes.model.Likes;
 import com.example.campingontop.house.model.House;
 import com.example.campingontop.house.model.response.GetFindHouseDtoRes;
@@ -49,8 +50,15 @@ public class LikesService {
             for (Likes like : likes) {
                 User user = like.getUser();
                 House house = like.getHouse();
+                List<HouseImage> houseImageList = house.getHouseImageList();
 
-                GetFindHouseDtoRes houseDto = GetFindHouseDtoRes.toDto(house);
+                List<String> filenames = new ArrayList<>();
+                for (HouseImage productImage : houseImageList) {
+                    String filename = productImage.getFilename();
+                    filenames.add(filename);
+                }
+
+                GetFindHouseDtoRes houseDto = GetFindHouseDtoRes.toDto(house, filenames);
 
                 GetUserWithLikeDtoRes userDto = GetUserWithLikeDtoRes.builder()
                         .id(like.getId())

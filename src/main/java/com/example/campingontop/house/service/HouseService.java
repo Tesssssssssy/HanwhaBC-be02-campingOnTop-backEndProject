@@ -5,16 +5,22 @@ import com.example.campingontop.aws.service.S3Service;
 import com.example.campingontop.exception.ErrorCode;
 import com.example.campingontop.exception.entityException.HouseException;
 import com.example.campingontop.house.model.House;
+import com.example.campingontop.house.model.request.GetHouseListPagingDtoReq;
 import com.example.campingontop.house.model.request.PostCreateHouseDtoReq;
 import com.example.campingontop.house.model.request.PutUpdateHouseDtoReq;
 import com.example.campingontop.house.model.response.*;
 import com.example.campingontop.house.repository.HouseRepository;
+import com.example.campingontop.houseImage.model.HouseImage;
 import com.example.campingontop.houseImage.service.HouseImageService;
 import com.example.campingontop.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -60,26 +66,53 @@ public class HouseService {
         return response;
     }
 
+    @Transactional(readOnly = true)
     public GetFindHouseDtoRes findHouseById(Long houseId) {
-        Optional<House> result = houseRepository.findById(houseId);
+        Optional<House> result = houseRepository.findActiveHouse(houseId);
         if (result.isPresent()) {
             House house = result.get();
-            GetFindHouseDtoRes res = GetFindHouseDtoRes.toDto(house);
+            List<HouseImage> houseImageList = house.getHouseImageList();
+
+            List<String> filenames = new ArrayList<>();
+            for (HouseImage productImage : houseImageList) {
+                String filename = productImage.getFilename();
+                filenames.add(filename);
+            }
+
+            GetFindHouseDtoRes res = GetFindHouseDtoRes.toDto(house, filenames);
             return res;
         }
-        return null;
+        throw new HouseException(ErrorCode.HOUSE_NOT_EXIST);
     }
 
-    public List<GetFindHouseDtoRes> findHouseList() {
-        List<House> houses = houseRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<GetFindHouseDtoRes> findHouseList(GetHouseListPagingDtoReq req) {
+        Pageable pageable = PageRequest.of(req.getPage()-1, req.getSize());
+        Page<House> result = houseRepository.findList(pageable);
+
         List<GetFindHouseDtoRes> houseList = new ArrayList<>();
 
-        for (House house : houses) {
-            GetFindHouseDtoRes res = GetFindHouseDtoRes.toDto(house);
+        for (House house : result.getContent()) {
+            List<HouseImage> houseImageList = house.getHouseImageList();
+
+            List<String> filenames = new ArrayList<>();
+            for (HouseImage productImage : houseImageList) {
+                String filename = productImage.getFilename();
+                filenames.add(filename);
+            }
+
+            GetFindHouseDtoRes res = GetFindHouseDtoRes.toDto(house, filenames);
             houseList.add(res);
         }
         return houseList;
     }
+
+    /*
+    @Transactional(readOnly = true)
+    public List<House> findHousesWithinDistance(Double latitude, Double longitude) {
+        return houseRepository.findHousesWithinDistance(latitude, longitude);
+    }
+    */
 
     public GetHouseLikeDtoRes addHeartHouse(User user, Long id) {
         Optional<House> result = houseRepository.findById(id);
@@ -118,10 +151,17 @@ public class HouseService {
             PutUpdateHouseDtoRes res = PutUpdateHouseDtoRes.toDto(house);
             return res;
         }
-        return null;
+        throw new HouseException(ErrorCode.HOUSE_NOT_EXIST);
     }
 
     public void deleteHouse(Long houseId) {
-        houseRepository.delete(House.builder().id(houseId).build());
+        Optional<House> result = houseRepository.findActiveHouse(houseId);
+        if (result.isPresent()) {
+            House house = result.get();
+            house.setStatus(false);
+            houseRepository.save(house);
+            return;
+        }
+        throw new HouseException(ErrorCode.HOUSE_NOT_EXIST);
     }
 }

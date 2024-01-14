@@ -37,9 +37,9 @@ public class House {
 
     private String address;
 
-    private String latitude;
+    private Double latitude;
 
-    private String longitude;
+    private Double longitude;
 
     @Min(1)
     private Integer maxUser;

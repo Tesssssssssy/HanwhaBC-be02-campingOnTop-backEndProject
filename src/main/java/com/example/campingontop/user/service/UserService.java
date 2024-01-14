@@ -141,7 +141,7 @@ public class UserService {
             userRepository.save(member);
             return;
         }
-        throw new UserException(ErrorCode.MEMBER_EMPTY);
+        throw new UserException(ErrorCode.MEMBER_NOT_EXIST);
     }
 
 
@@ -152,7 +152,7 @@ public class UserService {
 
             return GetFindUserDtoRes.toDto(user);
         }
-        throw new UserException(ErrorCode.MEMBER_EMPTY);
+        throw new UserException(ErrorCode.MEMBER_NOT_EXIST);
     }
 
     public List<GetFindUserDtoRes> findUserList() {
@@ -175,7 +175,7 @@ public class UserService {
             PutUpdateUserDtoRes res = PutUpdateUserDtoRes.toDto(user);
             return res;
         }
-        throw new UserException(ErrorCode.MEMBER_EMPTY);
+        throw new UserException(ErrorCode.MEMBER_NOT_EXIST);
     }
 
     public void deleteUser(Long userId) {
@@ -186,6 +186,6 @@ public class UserService {
             userRepository.save(user);
             return;
         }
-        throw new UserException(ErrorCode.MEMBER_EMPTY);
+        throw new UserException(ErrorCode.MEMBER_NOT_EXIST);
     }
 }
